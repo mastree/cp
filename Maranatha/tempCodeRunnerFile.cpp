@@ -1,0 +1,1 @@
+cerr << va2[curid].fi.fi << " " << va2[curid].fi.se << el;
