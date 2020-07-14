@@ -22,61 +22,44 @@ int n;
 int pref[N];
 int dp[N];
 
-vector <int> v;
-ll ans[N];
-ll tony[N];
+void find_prefix(){
+    int j = 0;
+    for (int i=1;i<n;i++){
+        while (s[i] != s[j] && j != 0) j = pref[j - 1];
+        if (s[i] == s[j]) j++;
+        pref[i] = j;
+    }
+}
 
 int main () {
     ios_base::sync_with_stdio(false);
     cin.tie(0);
     cout.tie(0);
 
-    fill(pref, pref + N, 1);
-
     cin >> s;
     n = s.length();
-    s = "*" + s;
-    int id = 1;
-    for (int i=2;i<=n;i++){
-        while (s[id] != s[i]){
-            if (id == 1) break;
-            id = pref[id - 1];
-        }
-        if (s[i] == s[id]) id++;
-        pref[i] = id;
+
+    find_prefix();
+    for (int i=0;i<n;i++){
+        dp[pref[i]]++;
     }
-    // for (int i=1;i<=n;i++){
-    //     cout << pref[i] << " ";
-    // }
-    // cout << el;
+    for (int i=n-1;i>=0;i--){
+        dp[pref[i - 1]] += dp[i];
+    }
+    for (int i=1;i<=n;i++){
+        dp[i]++;
+    }
+
+    vector <int> v;
     int cur = n;
-    v.pb(n);
-    while (cur > 1){
-        cur = pref[cur - 1];
+    while (cur > 0){
         v.pb(cur);
+        cur = pref[cur - 1];
     }
-
-    tony[1] = 1;
-    pref[n+1] = 1;
-    for (int i=1;i<=n;i++){
-        if (pref[i] > pref[i+1]){
-            tony[1]++;
-            tony[pref[i]]--;
-            cout << pref[i] << " ";
-        }
-    }
-    cout << el;
-
-    ll now = 0;
-    for (int i=1;i<=n;i++){
-        now += tony[i];
-        ans[i] += now;
-    }
-    ans[1]++;
-
     sort(v.begin(), v.end());
+    cout << v.size() << el;
     for (auto x : v){
-        cout << x << " " << ans[x] << el;
+        cout << x << " " << dp[x] << el;
     }
 
     return 0;

@@ -89,9 +89,10 @@ int main () {
 
     long long result = 0;
     for (int i=1;i<=n;i++){
+        cout << "count(" << i << ") = " << _count[i] << endl;
         result += _count[i];
     }
-    cout << result << endl;
+    cout << "result = " << result << endl;
 
     return 0;
 }
