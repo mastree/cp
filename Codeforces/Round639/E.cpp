@@ -1,96 +1,108 @@
 #include <bits/stdc++.h>
 
-using namespace std;
 
-const int N = 2e5 + 5;
+#define fi first
+#define se second
+#define pb(a) push_back(a)
+#define mp(a, b) make_pair(a, b)
+#define el '\n'
+
+using namespace std;
+using ll = long long;
+using pii = pair<int, int>;
+
+const int N = 2e5 + 10;
+const int INF = 1e9;
 
 int n, m;
-vector<int> g[N], rg[N];
-int c[N];
-int deg[N], rdeg[N];
-bool ans[N];
-int dp[N], pd[N];
+vector<int> adj[N], radj[N];
+int dp[N], rdp[N];
+int in[N], rin[N];
 
-bool dfs(int u) {
-    c[u] = 1;
-    for (auto v : g[u]) {
-        if (c[v] == 0) {
-            if (dfs(v))
-                return true;
-        } else if (c[v] == 1) {
-            return true;
-        }
+int col[N];
+
+int dfs(int node){
+    if (col[node] == 1) return 1;
+    col[node] = 1;
+    for (auto x : adj[node]){
+        if (col[x] == 2) continue;
+        if (dfs(x)) return 1;
     }
-    c[u] = 2;
-    return false;
+    col[node] = 2;
+    return 0;
 }
 
-void dismiss() {
-    cout << -1 << '\n';
-    exit(0);
-}
-
-int main() { 
-    ios_base::sync_with_stdio(0);
+int main () {
+    ios_base::sync_with_stdio(false);
     cin.tie(0);
     cout.tie(0);
 
     cin >> n >> m;
-    iota(dp + 1, dp + 1 + n, 1);
-    iota(pd + 1, pd + 1 + n, 1);
-    for (int i = 1; i <= m; i++) {
-        int x, y;
-        cin >> x >> y;
-        g[y].push_back(x);
-        rg[x].push_back(y);
-        deg[x]++;
-        rdeg[y]++;
+    for (int i=1;i<=m;i++){
+        int a, b;
+        cin >> a >> b;
+        adj[a].pb(b);
+        radj[b].pb(a);
+        in[b]++;
+        rin[a]++;
     }
-    for (int i = 1; i <= n; i++) {
-        if (dfs(i))
-            dismiss();
+    for (int i=1;i<=n;i++){
+        if (!col[i]){
+            if (dfs(i)){
+                cout << -1 << el;
+                return 0;
+            }
+        }
     }
-    queue<int> q, rq;
-    for (int i = 1; i <= n; i++) {
-        if (deg[i] == 0) {
+    fill(dp, dp + n + 2, INF);
+    fill(rdp, rdp + n + 2, INF);
+    queue<int> q;
+    for (int i=1;i<=n;i++){
+        if (in[i] == 0){
             q.push(i);
         }
-        if (rdeg[i] == 0) {
-            rq.push(i);
-        }
     }
-    while (!q.empty()) {
-        int u = q.front();
+    while (!q.empty()){
+        int node = q.front();
+        dp[node] = min(dp[node], node);
         q.pop();
-        for (auto v : g[u]) {
-            dp[v] = min(dp[v], dp[u]);
-            if (--deg[v] == 0) {
-                q.push(v);
+        for (auto x : adj[node]){
+            dp[x] = min(dp[x], dp[node]);
+            if (--in[x] == 0){
+                q.push(x);
             }
         }
     }
-    while (!rq.empty()) {
-        int u = rq.front();
-        rq.pop();
-        for (auto v : rg[u]) {
-            pd[v] = min(pd[v], pd[u]);
-            if (--rdeg[v] == 0) {
-                rq.push(v);
+    for (int i=1;i<=n;i++){
+        if (rin[i] == 0){
+            q.push(i);
+        }
+    }
+    while (!q.empty()){
+        int node = q.front();
+        rdp[node] = min(rdp[node], node);
+        q.pop();
+        for (auto x : radj[node]){
+            rdp[x] = min(rdp[x], rdp[node]);
+            if (--rin[x] == 0){
+                q.push(x);
             }
         }
     }
-    int res = 0;
-    for (int i = 1; i <= n; i++) {
-        if (pd[i] == dp[i] && dp[i] == i) {
-            ans[i] = true;
-            res++;
-        }
+    int ans = 0;
+    bool cek[n + 2];
+    for (int i=1;i<=n;i++){
+        if (dp[i] == rdp[i]){
+            ans++;
+            cek[i] = 1;
+        } else cek[i] = 0;
     }
-    cout << res << '\n';
-    for (int i = 1; i <= n; i++) {
-        cout << (ans[i] ? 'A' : 'E');
+    cout << ans << el;
+    for (int i=1;i<=n;i++){
+        if (cek[i]) cout << 'A';
+        else cout << 'E';
     }
-    cout << '\n';
+    cout << el;
 
     return 0;
 }
