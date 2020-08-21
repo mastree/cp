@@ -111,7 +111,7 @@ int main () {
     cin.tie(0);
     cout.tie(0);
 
-    freopen("dislodging_logs_input(1).txt", "r", stdin);
+    freopen("dislodging_logs_input.txt", "r", stdin);
     freopen("B.out", "w", stdout);
 
     cin >> q;

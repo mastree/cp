@@ -20,13 +20,15 @@ struct Vertex{
     int p = -1;
     int link = -1;
 
+    int deg = 0;
+
     Vertex(int p = -1, char ch = '$') : p(p), pch(ch) {
         fill(begin(go), end(go), -1);
     }
 };
 vector<Vertex> t;
 set<int> ans;
-bool ada[N];
+bool ada[N]; //, vis[N];
 
 void add_string(const string& s, int id){
     int v = 0;
@@ -41,20 +43,20 @@ void add_string(const string& s, int id){
     t[v].id = id;
 }
 int go(int v, char ch);
-int get_link(int v){
-    if (t[v].link == -1){
-        if (v == 0 ||  t[v].p == 0){
+int get_link(int v) {
+    if (t[v].link == -1) {
+        if (v == 0 || t[v].p == 0)
             t[v].link = 0;
-        } else{
+        else
             t[v].link = go(get_link(t[v].p), t[v].pch);
-        }
     }
     return t[v].link;
 }
-int go(int v, char ch){
+
+int go(int v, char ch) {
     int c = ch - 'A';
-    if (t[v].go[c] == -1){
-        t[v].go[c] = (v == 0) ? 0 : go(get_link(v), ch);
+    if (t[v].go[c] == -1) {
+        t[v].go[c] = v == 0 ? 0 : go(get_link(v), ch);
     }
     return t[v].go[c];
 }
@@ -69,11 +71,9 @@ void solve(const string& s){
 
     v = t.size();
     v--;
-    while (v > 0){
+    while (v){
         if (ada[v]){
-            if (t[v].id != -1){
-                ans.insert(t[v].id);
-            }
+            if (t[v].id != -1) ans.insert(t[v].id);
             ada[get_link(v)] = 1;
         }
         v--;
@@ -92,10 +92,17 @@ void solve(){
     cin >> s;
     int n;
     cin >> n;
+
+    vector<pair<pii, string>> vec;
     for (int i=1;i<=n;i++){
         string t;
         cin >> t;
-        add_string(t, i);
+        // add_string(t, i);
+        vec.emplace_back(mp(t.size(), i), t);
+    }
+    sort(vec.begin(), vec.end());
+    for (auto x : vec){
+        add_string(x.se, x.fi.se);
     }
     solve(s);
     for (int i=1;i<=n;i++){
