@@ -15,7 +15,8 @@ const int K = 70;
 const int N = 1e6 + 10;
 struct Vertex{
     int go[K];
-    int id = -1;
+    // int id = -1;
+    vector<int> id;
     char pch;
     int p = -1;
     int link = -1;
@@ -28,7 +29,7 @@ struct Vertex{
 };
 vector<Vertex> t;
 set<int> ans;
-bool ada[N]; //, vis[N];
+bool ada[N];
 
 void add_string(const string& s, int id){
     int v = 0;
@@ -40,7 +41,7 @@ void add_string(const string& s, int id){
         }
         v = t[v].go[c];
     }
-    t[v].id = id;
+    t[v].id.pb(id);
 }
 int go(int v, char ch);
 int get_link(int v) {
@@ -68,15 +69,26 @@ void solve(const string& s){
         v = go(v, ch);
     }
     ada[v] = 1;
+    queue<int> qu;
+    for (int i=0;i<t.size();i++){
+        if (ada[i]) qu.push(i);
+    }
+    while (!qu.empty()){
+        int tp = qu.front();
+        qu.pop();
 
-    v = t.size();
-    v--;
-    while (v){
-        if (ada[v]){
-            if (t[v].id != -1) ans.insert(t[v].id);
-            ada[get_link(v)] = 1;
+        int lnk = get_link(tp);
+        if (!ada[lnk]){
+            ada[lnk] = 1;
+            qu.push(lnk);
         }
-        v--;
+    }
+    for (int i=0;i<t.size();i++){
+        if (ada[i]){
+            for (auto x : t[i].id){
+                ans.insert(x);
+            }
+        }
     }
 }
 void init(){
@@ -93,16 +105,10 @@ void solve(){
     int n;
     cin >> n;
 
-    vector<pair<pii, string>> vec;
     for (int i=1;i<=n;i++){
         string t;
         cin >> t;
-        // add_string(t, i);
-        vec.emplace_back(mp(t.size(), i), t);
-    }
-    sort(vec.begin(), vec.end());
-    for (auto x : vec){
-        add_string(x.se, x.fi.se);
+        add_string(t, i);
     }
     solve(s);
     for (int i=1;i<=n;i++){
