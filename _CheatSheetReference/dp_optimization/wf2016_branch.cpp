@@ -59,17 +59,17 @@ void dijkstra(){
     }
 }
 
-ll dp[N][N];
 ll C(int a, int b){
-    return cost[b] - cost[a - 1];
+    return (cost[b] - cost[a - 1]) * (b - a);
 }
+ll dp[N][N];
 void compute(int l, int r, int optl, int optr, int id){
     if (l > r) return;
     int mid = (l + r) / 2;
-    pli best = mp(dp[id - 1][mid], mid + 1);
+    pli best = mp(INF, -1);
 
     for (int i=optl;i<=min(optr, mid);i++){
-        best = min(best, mp(dp[id - 1][i - 1] + C(i, mid) * (mid - i), i));
+        best = min(best, mp(dp[id - 1][i - 1] + C(i, mid), i));
     }
     dp[id][mid] = best.fi;
     compute(l, mid - 1, optl, best.se, id);

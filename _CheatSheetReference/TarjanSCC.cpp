@@ -2,7 +2,7 @@
 const int N = 2e5 + 10;
 
 int n, m;
-vector<int> adl[N];
+vector<int> adj[N];
 int comp[N];
 int compNum;
 int low[N], tin[N], timer;
@@ -13,7 +13,7 @@ void dfs_scc(int node){
     low[node] = tin[node] = ++timer;
     st.push(node);
     onStack[node] = 1;
-    for (auto x : adl[node]){
+    for (auto x : adj[node]){
         // if (x == p) continue;  // add parent as parameter and add this line for undirected graph
         if (tin[x] == 0){
             dfs_scc(x);

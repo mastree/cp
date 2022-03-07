@@ -1,97 +1,130 @@
+#pragma gcc optimize ("O2")
+#pragma gcc optimize ("unroll-loops")
+
 #include <bits/stdc++.h>
 
-
-#define fi first
-#define se second
-#define pb(a) push_back(a)
-#define mp(a, b) make_pair(a, b)
-#define el '\n'
-
 using namespace std;
-using ll = long long;
-using pii = pair<int, int>;
 
-const int N = 19, M = 9, MX = 3000;
+using ll = long long;
+
+const int N = 20;
+const int MASK = (1 << 9);
+const int MD = 50;
+const int MXSISA = 3e3;
 
 int q;
-ll p10[N];
-ll angmask[(1 << M)];
-int bitCnt[(1 << M)];
-ll dp[(1 << M)][N][MX][2];
+ll l, r;
+int MOD[MASK];
+int SISA;
+int _nsisa[MXSISA][10];
 
-ll calc(ll a){
-    ll ret = a;
-    string s = to_string(a);
-    int n = s.length();
-    memset(dp, 0, sizeof(dp));
+set<int> amod;
+vector<int> vmod;
+vector<int> adj[MD];
+int vlen;
 
-    for (int mask=1;mask<(1 << M);mask++){
-        dp[mask][0][0][0] = 1;
-        for (int i=0;i<n;i++){
-            int cur = (int)(s[i] - '0');
-            int pang = n - i - 1;
-            for (int j=0;j<(int)angmask[mask];j++){
-                for (int dig=0;dig<=M;dig++){
-                    if (dig == 0 || ((1 << (dig - 1)) & mask)){
-                        if (dig < cur){
-                            int tam = (1LL * dig * p10[pang]) % angmask[mask];
-                            int nsisa = (j + tam) % angmask[mask];
-                            dp[mask][i + 1][nsisa][1] += dp[mask][i][j][0] + dp[mask][i][j][1];
-                        } else{
-                            int tam = (1LL * dig * p10[pang]) % angmask[mask];
-                            int nsisa = (j + tam) % angmask[mask];
-                            dp[mask][i + 1][nsisa][1] += dp[mask][i][j][1];
-                        }
-                        if (dig == cur){
-                            int tam = (1LL * dig * p10[pang]) % angmask[mask];
-                            int nsisa = (j + tam) % angmask[mask];
-                            dp[mask][i + 1][nsisa][0] += dp[mask][i][j][0];
-                        }
-                    }
+ll lcm(ll a, ll b){
+    ll ret = a * b / __gcd(a, b);
+    return ret;
+}
+
+ll ans[MD][MXSISA];    
+ll dp[N][MXSISA][2]; // pos, sisa, lower = count
+ll solve(ll n){
+    if (n <= 0) return 0;
+    string s = to_string(n);
+    ll ret = 0;
+    int len = s.size();
+
+    for (int id=0;id<vlen;id++){
+        int mod = vmod[id];
+        for (int i=0;i<=len;i++){
+            for (int j=0;j<SISA;j++){
+                for (int k=0;k<2;k++){
+                    dp[i][j][k] = 0;
                 }
             }
         }
-    }
-    for (int mask=1;mask<(1 << M);mask++){
-        for (int i=0;i<2;i++){
-            if (dp[mask][n][0][i]){
-                cout << mask << " " << i << " " << dp[mask][n][0][i] << el;
+        dp[0][0][0] = 1;
+        for (int pos=0;pos<len;pos++){
+            int dig = s[pos] - '0';
+            int npos = pos + 1;
+            for (int sisa=0;sisa<SISA;sisa++){
+                // equal
+                for (auto& ndig : adj[id]){
+                    if (ndig >= dig) break;
+                    dp[npos][_nsisa[sisa][ndig]][1] += dp[pos][sisa][0];
+                }
+                {
+                    int ndig = dig;
+                    if (ndig == 0 || mod % ndig == 0){
+                        dp[npos][_nsisa[sisa][ndig]][0] += dp[pos][sisa][0];
+                    }
+                }
+                // lower
+                for (auto& ndig : adj[id]){
+                    dp[npos][_nsisa[sisa][ndig]][1] += dp[pos][sisa][1];
+                }
             }
-            if (bitCnt[mask] & 1){
-                ret -= dp[mask][n][0][i];
-            } else{
-                ret += dp[mask][n][0][i];
+        }
+        for (int sisa=0;sisa<SISA;sisa++){
+            ans[id][sisa] = 0;
+            for (int low=0;low<2;low++){
+                ans[id][sisa] += dp[len][sisa][low];
+            }
+        }
+        ans[id][0]--;
+    }
+    for (int i=0;i<vlen;i++){
+        for (int j=i + 1;j<vlen;j++){
+            if (vmod[j] % vmod[i] == 0){
+                for (int sisa=0;sisa<SISA;sisa++){
+                    ans[j][sisa] -= ans[i][sisa];
+                }
+            }
+        }
+        for (int sisa=0;sisa<SISA;sisa++){
+            if (sisa % vmod[i] == 0){
+                ret += ans[i][sisa];
             }
         }
     }
     return ret;
 }
 
-int main () {
-    ios_base::sync_with_stdio(false);
-    cin.tie(0);
-    cout.tie(0);
+void solve(){
+    cin >> l >> r;
+    cout << solve(r) - solve(l - 1) << '\n';
+}
 
-    for (ll i=1;i<(1 << M);i++){
-        ll cur = 1;
-        bitCnt[i] = __builtin_popcount(i);
-        for (ll j=0;j<(ll)M;j++){
-            if ((1 << j) & i){
-                cur = cur * (j + 1) / __gcd(cur, j + 1);
+int main(){
+    for (int i=0;i<MASK;i++){
+        MOD[i] = 1;
+        for (int j=0;j<9;j++){
+            if (i & (1 << j)){
+                MOD[i] = lcm((ll)MOD[i], (ll)j + 1);
             }
         }
-        angmask[i] = cur;
+        amod.insert(MOD[i]);
+    }
+    SISA = MOD[MASK - 1];
+    for (auto& x : amod) vmod.push_back(x);
+    vlen = vmod.size();
+
+    for (int i=0;i<vlen;i++){
+        for (int j=0;j<=9;j++){
+            if (j == 0 || vmod[i] % j == 0) adj[i].push_back(j);
+        }
+    }
+    for (int i=0;i<MXSISA;i++){
+        for (int j=0;j<10;j++){
+            _nsisa[i][j] = (i * 10 + j) % SISA; 
+        }
     }
 
-    p10[0] = 1;
-    for (int i=1;i<N;i++){
-        p10[i] = p10[i - 1] * 10LL;
-    }
     cin >> q;
     while (q--){
-        ll l, r;
-        cin >> l >> r;
-        cout << calc(r) - calc(l - 1) << el;
+        solve();
     }
 
     return 0;
